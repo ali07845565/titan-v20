@@ -1,17 +1,7 @@
-
-FROM python:3.9-slim
-
-# Set work directory
+FROM mcr.microsoft.com/playwright:v1.40.0-jammy
 WORKDIR /app
-
-# Copy files
 COPY . .
-
-# Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
-
-# Expose Koyeb default port
+RUN playwright install --with-deps chromium
 EXPOSE 8000
-
-# Run the app
-CMD ["python", "app.py"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "app:app"]
