@@ -1,7 +1,10 @@
 import requests, random, time, threading, os
-from fake_useragent import UserAgent
 
-# --- 100x ADVANCED CONFIG ---
+# --- BRANDING ---
+APP_NAME = "EPIC BOT WITH ALI ABBAS"
+VERSION = "V5.0 - REAL-TIME TRACKER"
+
+# --- TARGETS ---
 LINKS = [
     "https://newswirhbot.blogspot.com/2026/01/the-ultimate-2026-buying-guide-why.html?m=1",
     "https://newswirhbot.blogspot.com/2026/01/best-price-in-pakistan-2026-shop.html",
@@ -11,91 +14,70 @@ LINKS = [
     "https://youtu.be/K9ihEWJn4Go?si=SYn8IuvLw2cKfr4W"
 ]
 
-# Advanced Keywords for Organic Growth
-KEYWORDS = [
-    "Asmveo electronics review 2026", "how to find best prices in pakistan", 
-    "latest tech gadgets 2026 buying guide", "asmveo.com legit or not",
-    "predator badlands 2 movie watch online", "cheapest accessories shop pakistan"
+KEYWORDS = ["Best Price Pakistan", "Asmveo Gadgets", "Ali Abbas Bot", "Tech Deals 2026"]
+
+BROWSERS = [
+    "Chrome/121.0.0.0 (Windows NT 10.0)", 
+    "Safari/605.1.15 (Macintosh)", 
+    "Firefox/122.0 (Ubuntu)", 
+    "Edge/121.0.2277.128"
 ]
 
-# Diverse Referrers to mix traffic sources
-REFERRERS = [
-    "https://www.google.com/search?q={k}",
-    "https://www.bing.com/search?q={k}",
-    "https://duckduckgo.com/?q={k}",
-    "https://t.co/{r}", # Twitter shortener
-    "https://m.facebook.com/",
-    "https://www.youtube.com/results?search_query={k}"
-]
+def get_ip_info(proxy):
+    try:
+        # Proxy ke zariye location check karna
+        response = requests.get(f"https://ipapi.co/json/", proxies={"http": f"http://{proxy}", "https": f"http://{proxy}"}, timeout=5)
+        data = response.json()
+        return f"{data.get('city', 'Unknown')}, {data.get('country_name', 'Unknown')}"
+    except:
+        return "Location Hidden/Private"
 
-ua = UserAgent()
+def get_proxies():
+    try:
+        r = requests.get("https://api.proxyscrape.com/v2/?request=getproxies&protocol=http&timeout=5000&country=US,GB,CA&ssl=yes&anonymity=elite")
+        return r.text.splitlines()
+    except: return []
 
-def get_super_proxies():
-    # Multi-Source Proxy Aggregator
-    sources = [
-        "https://api.proxyscrape.com/v2/?request=getproxies&protocol=http&country=US,GB,CA,AU&ssl=yes&anonymity=elite",
-        "https://raw.githubusercontent.com/TheSpeedX/SOCKS-List/master/http.txt",
-        "https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/http.txt",
-        "https://proxyspace.pro/http.txt"
-    ]
-    all_proxies = []
-    for s in sources:
-        try:
-            r = requests.get(s, timeout=15)
-            if r.status_code == 200:
-                all_proxies.extend(r.text.splitlines())
-        except: continue
-    return list(set(all_proxies))
-
-def engine_worker():
-    proxy_pool = get_super_proxies()
-    print(f"✅ Engine Primed: {len(proxy_pool)} Premium IPs Loaded.")
-    
+def worker():
+    proxy_list = get_proxies()
     while True:
-        if not proxy_pool or len(proxy_pool) < 20:
-            proxy_pool = get_super_proxies()
-            
-        target = random.choice(LINKS)
-        proxy = random.choice(proxy_pool)
-        keyword = random.choice(KEYWORDS).replace(" ", "+")
+        if not proxy_list: proxy_list = get_proxies()
         
-        # Super Advanced Header Spoofing
+        target = random.choice(LINKS)
+        proxy = random.choice(proxy_list)
+        keyword = random.choice(KEYWORDS)
+        browser = random.choice(BROWSERS)
+        
+        # Real Location Fetching
+        location = get_ip_info(proxy)
+        
         headers = {
-            "User-Agent": ua.random,
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-            "Accept-Language": "en-US,en;q=0.5",
-            "Referer": random.choice(REFERRERS).format(k=keyword, r=os.urandom(4).hex()),
-            "DNT": "1", # Do Not Track request
-            "Upgrade-Insecure-Requests": "1",
-            "X-Forwarded-For": f"{random.randint(1,255)}.{random.randint(1,255)}.{random.randint(1,255)}.{random.randint(1,255)}"
+            "User-Agent": f"Mozilla/5.0 {browser}",
+            "Referer": f"https://www.google.com/search?q={keyword.replace(' ', '+')}",
+            "X-Forwarded-For": proxy.split(':')[0]
         }
         
         try:
-            p_dict = {"http": f"http://{proxy}", "https": f"http://{proxy}"}
-            # Initial Hit
-            with requests.Session() as s:
-                s.proxies = p_dict
-                s.headers.update(headers)
-                
-                # Step 1: Visit Link
-                res = s.get(target, timeout=12)
-                
-                # Step 2: Realistic "Internal Navigation" Simulation
-                # Website ko lagega ke user link par ruk kar doosre pages bhi dekh raha hai
-                if res.status_code == 200:
-                    print(f"🔥 [ULTRA HIT] {target[-20:]} | IP: {proxy[:12]} | Key: {keyword[:10]}")
-                    time.sleep(random.randint(20, 45)) # Time on site
-                
+            with requests.get(target, headers=headers, proxies={"http": f"http://{proxy}", "https": f"http://{proxy}"}, timeout=12) as r:
+                if r.status_code == 200:
+                    print(f"\n[🔥 NEW HIT] ------------------------------")
+                    print(f"📡 IP       : {proxy}")
+                    print(f"📍 LOCATION : {location}")
+                    print(f"🌐 BROWSER  : {browser.split('/')[0]}")
+                    print(f"🔑 KEYWORD  : {keyword}")
+                    print(f"🔗 TARGET   : {target[-30:]}")
+                    print(f"✅ STATUS   : SUCCESS (200 OK)")
+                    print(f"-------------------------------------------")
         except:
-            if proxy in proxy_pool: proxy_pool.remove(proxy)
+            if proxy in proxy_list: proxy_list.remove(proxy)
             continue
+        time.sleep(random.randint(5, 10))
 
 if __name__ == "__main__":
-    # Max Power for Koyeb (30 Parallel Workers)
-    for _ in range(30):
-        t = threading.Thread(target=engine_worker, daemon=True)
-        t.start()
-        time.sleep(0.2)
-    
-    while True:
-        time.sleep(100)
+    os.system('clear')
+    print(f"🚀 {APP_NAME} Started...")
+    print("Monitoring Live Traffic Flow...\n")
+    # 15 threads for stability and accuracy
+    for _ in range(15):
+        threading.Thread(target=worker, daemon=True).start()
+    while True: time.sleep(10)
