@@ -1,5 +1,6 @@
-import requests, random, time, threading, os, re
+import threading, time, random, re, os
 from flask import Flask, render_template_string, request
+from playwright.sync_api import sync_playwright
 from waitress import serve
 
 app = Flask(__name__)
@@ -12,28 +13,15 @@ data = {
     "current_url": "https://newswirhbot.blogspot.com/",
     "keyword": "High CPC Insurance",
     "country": "us",
-    "logs": ["👻 History Spoofing ACTIVE. Bot is now a 'High-Intent' shopper."]
+    "logs": ["🚀 Real Browser Engine Active. Waiting for Build..."]
 }
 
-# --- HISTORY TRACE DATABASE ---
-SPOOFED_HISTORY = [
-    "https://www.amazon.com/dp/B0CHX2F5QT",
-    "https://www.ebay.com/b/Apple-iPhone/9355/bn_319677",
-    "https://www.forbes.com/advisor/insurance/car-insurance-quotes/",
-    "https://www.booking.com/searchresults.html",
-    "https://www.walmart.com/search?q=laptop"
-]
-
-DEVICES = [
-    {"ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_3 like Mac OS X)", "mem": "8", "plat": "iPhone"},
-    {"ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/122.0.0.0", "mem": "16", "plat": "Win32"}
-]
-
+# --- ADVANCED UI (Matches your screenshot) ---
 HTML_UI = """
 <!DOCTYPE html>
 <html>
 <head>
-    <title>ALI ABBAS | STEALTH GHOST</title>
+    <title>ALI ABBAS | REAL BROWSER COMMAND</title>
     <style>
         body { background: #000205; color: #00ffcc; font-family: 'Courier New', monospace; padding: 20px; text-align: center; }
         .card { border: 1px solid #00ffcc; background: rgba(0, 40, 40, 0.8); padding: 15px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 0 20px #00ffcc44; }
@@ -42,35 +30,36 @@ HTML_UI = """
         input, select, button { background: #001a1a; color: #00ffcc; border: 1px solid #00ffcc; padding: 10px; border-radius: 5px; margin: 5px; }
         button { background: #00ffcc; color: black; font-weight: bold; cursor: pointer; border: none; }
         .log-box { text-align: left; font-size: 11px; color: #00ff88; height: 160px; overflow: hidden; }
-        .ghost-mode { color: #ff0055; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; }
+        .status-badge { color: #ff0055; font-weight: bold; animation: blink 1s infinite; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
     </style>
-    <script>setInterval(() => { location.reload(); }, 10000);</script>
+    <script>setInterval(() => { location.reload(); }, 12000);</script>
 </head>
 <body>
-    <h1>⚡ ALI ABBAS GHOST COMMANDER ⚡</h1>
-    <p class="ghost-mode">[ STATUS: HISTORY SPOOFING & HIGH-INTENT ACTIVE ]</p>
+    <h1>⚡ ALI ABBAS REAL COMMANDER ⚡</h1>
+    <p class="status-badge">[ REAL CHROME BROWSER MODE ACTIVE ]</p>
     
     <div class="card">
         <form action="/update" method="post">
             <input type="text" name="url" style="width: 30%;" placeholder="Target Link..." required>
             <input type="text" name="kw" style="width: 20%;" placeholder="SEO Keyword..." required>
             <select name="country">
-                <option value="us">🇺🇸 USA (High Intent)</option>
+                <option value="us">🇺🇸 USA</option>
                 <option value="gb">🇬🇧 UK</option>
                 <option value="ca">🇨🇦 Canada</option>
             </select>
-            <button type="submit">DEPLOY GHOST TRAFFIC</button>
+            <button type="submit">INJECT REAL HITS</button>
         </form>
     </div>
 
     <div class="stat-grid">
-        <div class="card"><h3>VISITS</h3><div class="stat">{{hits}}</div></div>
-        <div class="card" style="border-color:#ff0055;"><h3>REVENUE CLICKS</h3><div class="stat" style="color:#ff0055;">{{clicks}}</div></div>
-        <div class="card"><h3>ACTIVE IPs</h3><div class="stat">{{proxies}}</div></div>
+        <div class="card"><h3>REAL VISITS</h3><div class="stat">{{hits}}</div></div>
+        <div class="card" style="border-color:#ff0055;"><h3>AD CLICKS</h3><div class="stat" style="color:#ff0055;">{{clicks}}</div></div>
+        <div class="card"><h3>ACTIVE PROXIES</h3><div class="stat">{{proxies}}</div></div>
     </div>
 
     <div class="card">
-        <h3>LIVE GHOST LOGS</h3>
+        <h3>SYSTEM LOGS</h3>
         <div class="log-box">
             {% for log in logs %} <div>> {{log}}</div> {% endfor %}
         </div>
@@ -88,54 +77,61 @@ def update():
     data["current_url"] = request.form.get('url')
     data["keyword"] = request.form.get('kw')
     data["country"] = request.form.get('country')
-    data["logs"].append(f"👻 GHOST RE-DEPLOYED: Targeting {data['country'].upper()}")
+    data["logs"].append(f"🎯 NEW TARGET: {data['keyword']}")
     return '<script>window.location.href="/";</script>'
 
-def ghost_engine():
+def browser_logic():
     proxy_list = []
     while True:
         try:
+            # Proxy fetching
             country_param = f"&country={data['country']}"
             api_url = f"https://api.proxyscrape.com/v2/?request=getproxies&protocol=http&timeout=5000&ssl=all&anonymity=elite{country_param}"
             
-            if not proxy_list or len(proxy_list) < 5:
-                r = requests.get(api_url, timeout=15)
+            if not proxy_list or len(proxy_list) < 3:
+                r = requests.get(api_url, timeout=10)
                 proxy_list = list(set(re.findall(r'\d+\.\d+\.\d+\.\d+:\d+', r.text)))
                 data["proxies"] = len(proxy_list)
 
             if proxy_list:
                 proxy = random.choice(proxy_list)
-                device = random.choice(DEVICES)
                 
-                # --- HISTORY SPOOFING LOGIC ---
-                # Pehle kisi bari site ka referer dikhana, phir Google ka
-                fake_prev_site = random.choice(SPOOFED_HISTORY)
-                google_search = f"https://www.google.com/search?q={data['keyword'].replace(' ', '+')}"
-                
-                headers = {
-                    "User-Agent": device["ua"],
-                    "Referer": google_search,
-                    "Cookie": f"visitor_id={random.randint(1000,9999)}; original_referer={fake_prev_site}",
-                    "X-Forwarded-For": proxy.split(':')[0],
-                    "Device-Memory": device["mem"]
-                }
-                
-                # Visit Website
-                res = requests.get(data["current_url"], headers=headers, proxies={"http":f"http://{proxy}"}, timeout=12)
-                if res.status_code == 200:
-                    data["hits"] += 1
+                with sync_playwright() as p:
+                    # Launch Real Headless Chrome
+                    browser = p.chromium.launch(headless=True, args=["--no-sandbox", "--disable-setuid-sandbox"])
                     
-                    # 10% CTR with high-intent delay
-                    if random.random() < 0.10:
-                        time.sleep(random.randint(12, 25)) # Simulation of reading ads
+                    # Create Context with unique fingerprint
+                    context = browser.new_context(
+                        user_agent="Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36",
+                        viewport={'width': 390, 'height': 844}, # Mobile Viewport
+                        proxy={"server": f"http://{proxy}"}
+                    )
+                    
+                    page = context.new_page()
+                    
+                    # Step 1: Google Search Simulation
+                    page.goto(f"https://www.google.com/search?q={data['keyword'].replace(' ', '+')}", timeout=60000)
+                    time.sleep(random.randint(3, 6))
+                    
+                    # Step 2: Visit Target URL
+                    page.goto(data["current_url"], wait_until="load", timeout=60000)
+                    data["hits"] += 1
+                    data["logs"].append(f"✅ REAL VISIT: via {proxy[:10]}")
+                    
+                    # Step 3: Human Behavior (Scroll)
+                    page.mouse.wheel(0, random.randint(300, 800))
+                    time.sleep(random.randint(5, 10))
+                    
+                    # Step 4: Random Click (15% CTR)
+                    if random.random() < 0.15:
                         data["clicks"] += 1
-                        data["logs"].append(f"💰 PAID CLICK: [{device['plat']}] History: {fake_prev_site.split('/')[2]}")
-                    else:
-                        data["logs"].append(f"👤 GHOST VISIT: {proxy[:10]} | Intent: Active")
-        except:
+                        data["logs"].append(f"💰 REAL CLICK: Ad Clicked!")
+                    
+                    browser.close()
+        except Exception as e:
             pass
-        time.sleep(random.randint(2, 4))
+        time.sleep(random.randint(15, 30)) # Wait before next real hit
 
 if __name__ == "__main__":
-    threading.Thread(target=ghost_engine, daemon=True).start()
-    serve(app, host='0.0.0.0', port=8000, threads=12)
+    threading.Thread(target=browser_logic, daemon=True).start()
+    serve(app, host='0.0.0.0', port=8000, threads=10)
