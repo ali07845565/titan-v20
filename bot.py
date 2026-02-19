@@ -1,10 +1,9 @@
-import requests, random, time, threading, os
+import requests, random, time, threading, os, re
 
 # --- BRANDING ---
 APP_NAME = "EPIC BOT WITH ALI ABBAS"
-VERSION = "V5.0 - REAL-TIME TRACKER"
+VERSION = "V6.0 - PROXY HUNTER"
 
-# --- TARGETS ---
 LINKS = [
     "https://newswirhbot.blogspot.com/2026/01/the-ultimate-2026-buying-guide-why.html?m=1",
     "https://newswirhbot.blogspot.com/2026/01/best-price-in-pakistan-2026-shop.html",
@@ -16,68 +15,78 @@ LINKS = [
 
 KEYWORDS = ["Best Price Pakistan", "Asmveo Gadgets", "Ali Abbas Bot", "Tech Deals 2026"]
 
-BROWSERS = [
-    "Chrome/121.0.0.0 (Windows NT 10.0)", 
-    "Safari/605.1.15 (Macintosh)", 
-    "Firefox/122.0 (Ubuntu)", 
-    "Edge/121.0.2277.128"
+# --- 40K+ PROXY FISHING SOURCES ---
+PROXY_SOURCES = [
+    "https://api.proxyscrape.com/v2/?request=getproxies&protocol=http&timeout=10000&country=all&ssl=all&anonymity=all",
+    "https://www.proxy-list.download/api/v1/get?type=https",
+    "https://www.proxyscan.io/download?type=http",
+    "https://raw.githubusercontent.com/TheSpeedX/SOCKS-List/master/http.txt",
+    "https://raw.githubusercontent.com/ShiftyTR/Proxy-List/master/http.txt",
+    "https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/http.txt",
+    "https://raw.githubusercontent.com/hookzof/socks5_list/master/proxy.txt",
+    "https://raw.githubusercontent.com/clarketm/proxy-list/master/proxy.txt"
 ]
 
-def get_ip_info(proxy):
-    try:
-        # Proxy ke zariye location check karna
-        response = requests.get(f"https://ipapi.co/json/", proxies={"http": f"http://{proxy}", "https": f"http://{proxy}"}, timeout=5)
-        data = response.json()
-        return f"{data.get('city', 'Unknown')}, {data.get('country_name', 'Unknown')}"
-    except:
-        return "Location Hidden/Private"
+GLOBAL_PROXIES = []
 
-def get_proxies():
-    try:
-        r = requests.get("https://api.proxyscrape.com/v2/?request=getproxies&protocol=http&timeout=5000&country=US,GB,CA&ssl=yes&anonymity=elite")
-        return r.text.splitlines()
-    except: return []
+def fish_proxies():
+    global GLOBAL_PROXIES
+    while True:
+        temp_list = []
+        print(f"\n[🎣 FISHING] Ali Abbas Hunter is searching for 40k+ proxies...")
+        for source in PROXY_SOURCES:
+            try:
+                r = requests.get(source, timeout=15)
+                if r.status_code == 200:
+                    found = re.findall(r'\d+\.\d+\.\d+\.\d+:\d+', r.text)
+                    temp_list.extend(found)
+            except: continue
+        
+        if temp_list:
+            GLOBAL_PROXIES = list(set(temp_list))
+            print(f"✅ SUCCESS: {len(GLOBAL_PROXIES)} Real IPs Hooked!")
+        
+        # Re-fish every 15 minutes to keep list fresh
+        time.sleep(900)
 
 def worker():
-    proxy_list = get_proxies()
     while True:
-        if not proxy_list: proxy_list = get_proxies()
-        
+        if not GLOBAL_PROXIES:
+            time.sleep(5)
+            continue
+            
+        proxy = random.choice(GLOBAL_PROXIES)
         target = random.choice(LINKS)
-        proxy = random.choice(proxy_list)
-        keyword = random.choice(KEYWORDS)
-        browser = random.choice(BROWSERS)
-        
-        # Real Location Fetching
-        location = get_ip_info(proxy)
+        kw = random.choice(KEYWORDS)
         
         headers = {
-            "User-Agent": f"Mozilla/5.0 {browser}",
-            "Referer": f"https://www.google.com/search?q={keyword.replace(' ', '+')}",
+            "User-Agent": f"Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/{random.randint(100,122)}.0.0.0",
+            "Referer": f"https://www.google.com/search?q={kw.replace(' ', '+')}",
             "X-Forwarded-For": proxy.split(':')[0]
         }
         
         try:
-            with requests.get(target, headers=headers, proxies={"http": f"http://{proxy}", "https": f"http://{proxy}"}, timeout=12) as r:
+            proxies = {"http": f"http://{proxy}", "https": f"http://{proxy}"}
+            with requests.get(target, headers=headers, proxies=proxies, timeout=10) as r:
                 if r.status_code == 200:
-                    print(f"\n[🔥 NEW HIT] ------------------------------")
-                    print(f"📡 IP       : {proxy}")
-                    print(f"📍 LOCATION : {location}")
-                    print(f"🌐 BROWSER  : {browser.split('/')[0]}")
-                    print(f"🔑 KEYWORD  : {keyword}")
-                    print(f"🔗 TARGET   : {target[-30:]}")
-                    print(f"✅ STATUS   : SUCCESS (200 OK)")
-                    print(f"-------------------------------------------")
+                    # Real-time dashboard output
+                    print(f"🚀 [HIT] IP: {proxy[:15]} | {kw} | {target[-15:]}")
         except:
-            if proxy in proxy_list: proxy_list.remove(proxy)
+            if proxy in GLOBAL_PROXIES: GLOBAL_PROXIES.remove(proxy)
             continue
-        time.sleep(random.randint(5, 10))
+        time.sleep(random.randint(2, 5))
 
 if __name__ == "__main__":
     os.system('clear')
-    print(f"🚀 {APP_NAME} Started...")
-    print("Monitoring Live Traffic Flow...\n")
-    # 15 threads for stability and accuracy
-    for _ in range(15):
+    print("="*50)
+    print(f"🛡️  {APP_NAME} UI - V6.0")
+    print("="*50)
+    
+    # Start Fishing Thread
+    threading.Thread(target=fish_proxies, daemon=True).start()
+    
+    # Start 20 Traffic Workers
+    for _ in range(20):
         threading.Thread(target=worker, daemon=True).start()
-    while True: time.sleep(10)
+    
+    while True: time.sleep(60)
