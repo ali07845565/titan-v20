@@ -1,6 +1,6 @@
 FROM python:3.10-slim
 
-# Install system dependencies for Playwright (Fixed Package Names)
+# Install system dependencies for Playwright (Fixing the package name error)
 RUN apt-get update && apt-get install -y \
     libglib2.0-0 \
     libnss3 \
