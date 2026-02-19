@@ -1,22 +1,23 @@
 FROM python:3.10-slim
 
-# Step 1: Zaroori tools install karein
-RUN apt-get update && apt-get install -y procps
+# Step 1: Install system dependencies
+RUN apt-get update && apt-get install -y procps netcat-openbsd
 
-# Step 2: Work Directory set karein
+# Step 2: Set work directory
 WORKDIR /app
 
-# Step 3: Sari files aur folders (including 'App' folder) copy karein
+# Step 3: Copy all files (including App folder if exists)
 COPY . .
 
-# Step 4: Python libraries install karein
+# Step 4: Install Python libraries
 RUN pip install --no-cache-dir requests
 
-# Step 5: Port environment variable for Koyeb
+# Step 5: Port environment variable
 ENV PORT=8000
 EXPOSE 8000
 
 # Step 6: Smart Start Command
-# Ye command pehle check karegi ke bot.py kahan hai, phir usay chalayegi
-# Saath hi ek fake server chalayegi taake Health Check pass ho jaye
-CMD sh -c "python -m http.server 8000 & (python bot.py || python App/bot.py || python app/bot.py)"
+# 1. Start a simple HTTP server on port 8000 (FAST)
+# 2. Wait 2 seconds
+# 3. Start the bot in the background
+CMD sh -c "python3 -m http.server 8000 & sleep 2 && (python3 bot.py || python3 App/bot.py)"
